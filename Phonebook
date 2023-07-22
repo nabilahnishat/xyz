@@ -1,0 +1,325 @@
+from tkinter import*
+import datetime
+import sqlite3
+from tkinter import messagebox
+
+date=datetime.datetime.now()
+print(date)
+date=date.strftime('%d-%m-%Y')
+print(date)
+
+conn=sqlite3.connect('phonebook.db')
+cur=conn.cursor()
+class phonebook(object):
+    def __init__(self,master):
+        self.master=master
+        top=Frame(master,height=150,bg='blue',bd=8,relief=GROOVE)
+        top.pack(fill=X)
+        self.bottom = Frame(master, height=500, bg='skyblue', bd=8, relief=GROOVE)
+        self.bottom.pack(fill=X)
+        heading=Label(top,text='My Phonebook App',font='arial 40 bold',bg='blue',fg='red')
+        heading.place(x=70,y=30)
+        date1 = Label(top, text="Today's date is:"+date, font='arial 15 bold', bg='blue')
+        date1.place(x=370, y=100)
+        self.login_design()
+
+    def login_design(self):
+        f1=Frame(self.bottom,height=340,width=390,bg='pink',bd=15,relief=GROOVE)
+        f1.place(x=120,y=40)
+        f2 = Frame(f1, height=300, width=350, bd=8, relief=GROOVE)
+        f2.place(x=6, y=6)
+        Label(f2,text='Login Page',font='arial 25 bold',fg='blue').place(x=80,y=10)
+        Label(f2,text='User Name',font='arial 18 bold').place(x=10,y=90)
+        self.name_e=Entry(f2,bd=3)
+        self.name_e.place(x=150,y=90,height=28,width=170)
+        Label(f2, text='Password', font='arial 18 bold').place(x=10, y=150)
+        self.password = Entry(f2, bd=3)
+        self.password.place(x=150, y=150, height=28, width=170)
+
+        btn1=Button(f2, text='Login', font='arial 15 bold', bg='pink', command=self.login)
+        btn1.place(x=140,y=200)
+
+        btn2 = Button(f2, text='Change Password', font='arial 7 bold', bg='red',command=self.change_pass)
+        btn2.place(x=130, y=250)
+
+    def login(self):
+        n = self.name_e.get()
+        p = self.password.get()
+
+        result = cur.execute("select * from login").fetchone()
+        name = result[0]
+        pwd = result[1]
+
+        if n!='' and p !='':
+            if name==n and pwd==p:
+                messagebox.showinfo('Success','Login successful')
+                main_page()
+            else:
+                messagebox.showerror('Error', 'Invalid username and password')
+        else:
+            messagebox.showinfo('Information','Enter username and password')
+    def change_pass(self):
+        f1=Frame(self.bottom,height=340,width=390,bg='red',bd=15,relief=GROOVE)
+        f1.place(x=120,y=40)
+        f2 = Frame(f1, height=300, width=350, bd=8, relief=GROOVE)
+        f2.place(x=6, y=6)
+        Label(f2,text='Change password',font='arial 20 bold',fg='blue').place(x=50,y=10)
+
+        Label(f2,text='User Name',font='arial 15 bold').place(x=10,y=70)
+        self.name_e=Entry(f2,bd=3)
+        self.name_e.place(x=160,y=70,height=28,width=170)
+
+        Label(f2, text='Old Password', font='arial 15 bold').place(x=10, y=110)
+        self.old_pwd = Entry(f2, bd=3)
+        self.old_pwd.place(x=160, y=110, height=28, width=170)
+
+        Label(f2, text='New Password', font='arial 15 bold').place(x=10, y=150)
+        self.new_pwd = Entry(f2, bd=3)
+        self.new_pwd.place(x=160, y=150, height=28, width=170)
+
+        btn1=Button(f2, text='Change', font='arial 15 bold', bg='red',command=self.change_password)
+        btn1.place(x=140,y=200)
+
+        btn2 = Button(f2, text='Login', font='arial 7 bold', bg='pink', command=self.login_design)
+        btn2.place(x=160, y=250)
+    def change_password(self):
+        n=self.name_e.get()
+        o_p=self.old_pwd.get()
+        n_p=self.new_pwd.get()
+
+        result = cur.execute("select * from login").fetchone()
+        name = result[0]
+        pwd = result[1]
+
+        if n != '' and o_p != '' and n_p!='':
+            if name == n and pwd == o_p:
+                cur.execute("update login set password=? where name=? and password=?",(n_p,n,o_p))
+                conn.commit()
+                messagebox.showinfo('Success','Password Changed')
+            else:
+                messagebox.showerror('Error', 'Invalid username and old password')
+        else:
+            messagebox.showinfo('Information', 'Fill all field')
+class main_page(Toplevel):
+    def __init__(self):
+        Toplevel.__init__(self)
+        self.title('My people')
+        self.geometry('1000x690+170+0')
+        self.resizable(False,False)
+
+        top = Frame(self, height=150, bg='blue', bd=8, relief=GROOVE)
+        top.pack(fill=X)
+        self.bottom = Frame(self, height=500, bg='skyblue', bd=8, relief=GROOVE)
+        self.bottom.pack(fill=X)
+        heading = Label(top, text='My Phonebook App', font='arial 55 bold', bg='blue', fg='red')
+        heading.place(x=70, y=10)
+        date1 = Label(top, text="Today's date is:" + date, font='arial 15 bold', bg='blue')
+        date1.place(x=670, y=100)
+
+        f1 = Frame(self.bottom, height=250, width=220, bg='blue', bd=5, relief=GROOVE)
+        f1.place(x=60,y=70)
+
+        f2 = Frame(f1, height=220, width=190, bd=5, relief=GROOVE)
+        f2.place(x=10, y=10)
+
+        btn1=Button(f2,text='My People',font='arial 18 bold',bg='pink',bd=5,relief=GROOVE, command=self.my_people)
+        btn1.place(x=10,y=30)
+        btn2 = Button(f2, text='Add people', font='arial 18 bold', bg='pink', bd=5, relief=GROOVE, command=self.add_people)
+        btn2.place(x=10, y=100)
+
+    def add_people(self):
+        self.f1=Frame(self.bottom, height=450, width=600, bd=10,relief=GROOVE,bg='white')
+        self.f1.place(x=370, y=10)
+        Label(self.f1, text='Add People Form', font='arial 20 bold', fg='blue', bg='white').place(x=150, y=10)
+
+        name =Label(self.f1,text='Name',font='arial 20 bold',bg='white')
+        name.place(x=80,y=100)
+        self.name_e = Entry(self.f1,bd=3)
+        self.name_e.place(x=220,y=100,height=40, width=290)
+
+        email = Label(self.f1, text='Email', font='arial 20 bold', bg='white')
+        email.place(x=80, y=160)
+        self.email_e = Entry(self.f1, bd=3)
+        self.email_e.place(x=220, y=160, height=40, width=290)
+
+        mob = Label(self.f1, text='Phone no.', font='arial 20 bold', bg='white')
+        mob.place(x=80, y=240)
+        self.mob_e = Entry(self.f1, bd=3)
+        self.mob_e.place(x=220, y=240, height=40, width=290)
+
+        address = Label(self.f1, text='Address', font='arial 20 bold', bg='white')
+        address.place(x=80, y=320)
+        self.address_t = Text(self.f1, bd=5)
+        self.address_t.place(x=220, y=300, height=60, width=290)
+
+        btnadd=Button(self.f1,width=7, text='Add', bd=5,font='arial 13 bold', bg='red',command=self.add_record)
+        btnadd.place(x=250,y=380)
+
+    def add_record(self):
+        name=self.name_e.get()
+        email=self.email_e.get()
+        mob=self.mob_e.get()
+        address=self.address_t.get(1.0,'end-1c')
+        print(name,email,mob,address)
+
+        if name and email and mob and address!='':
+            cur.execute('CREATE TABLE IF NOT EXISTS addpeople(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, NAME TEXT,EMAIL TEXT,MOBILE INTEGER,ADDRESS TEXT)')
+            cur.execute('INSERT INTO addpeople(NAME,EMAIL,MOBILE,ADDRESS) VALUES(?,?,?,?)',(name,email,mob,address))
+            conn.commit()
+            msg1 = Label(self.f1, text="Record added successfully", font='arial 12 bold', bg='white', fg='green')
+            msg1.place(x=80, y=60)
+        else:
+            msg2 = Label(self.f1, text="Fill details of person", font='arial 12 bold', bg='white', fg='red')
+            msg2.place(x=80, y=60)
+
+    def my_people(self):
+        f1 = Frame(self.bottom, height=450, width=600)
+        f1.place(x=370,y=10)
+
+        f2 = Frame(f1, height=70, width=600, bg='pink', bd=10)
+        f2.place(x=0, y=0)
+
+        f3 = Frame(f1, height=400, width=600, bg='pink', bd=10)
+        f3.place(x=0, y=60)
+
+        heading=Label(f2,text='My People Page', font='arial 25 bold', bg='pink')
+        heading.place(x=150, y=5)
+
+        scroll=Scrollbar(f3,orient=VERTICAL)
+        self.listbox=Listbox(f3, width=58,height=26)
+        self.listbox.grid(row=0,column=0,padx=(40,0))
+        scroll.config(command=self.listbox.yview)
+        self.listbox.config(yscrollcommand=scroll.set)
+        scroll.grid(row=0,column=1,sticky=NS)
+
+        person=cur.execute("SELECT *  FROM addpeople").fetchall()
+        self.listbox.insert(END,"SL NO.     Name")
+        self.listbox.insert(END,"------------------------------------")
+        for i in person:
+            self.listbox.insert(END, str(i[0])+".        "+i[1])
+
+        btndisplay = Button(f3, text='Display', width=12, font='Sans 12 bold',command=self.display_selectid)
+        btndisplay.grid(row=0, column=2, padx=20, pady=50, sticky=N)
+        btnupdate = Button(f3, text='Update', width=12, font='Sans 12 bold',command=self.update_selectid)
+        btnupdate.grid(row=0, column=2, padx=20, pady=90, sticky=N)
+        btndelete = Button(f3, text='Delete', width=12, font='Sans 12 bold',command=self.delete_record)
+        btndelete.grid(row=0, column=2, padx=20, pady=130, sticky=N)
+
+    def display_selectid(self):
+        selected_item = self.listbox.curselection()
+        person =self.listbox.get(selected_item)
+        self.person = person.split(".")[0]
+        print(self.person)
+        self.display()
+
+
+    def display(self):
+        r = Tk()
+        r.title('Display people')
+        r.geometry('390x500+550+220')
+        r.resizable(False, False)
+
+        query = "select * from addpeople where ID='{}'".format(self.person)
+        result = cur.execute(query).fetchone()
+        n = result[1]
+        e = result[2]
+        m = result[3]
+        a = result[4]
+        top=Frame(r, height=60, bg='skyblue')
+        top.pack(fill=X)
+        bottom = Frame(r, height=400, bg='white')
+        bottom.pack(fill=X)
+
+        Label(top, text='Display People', font='arial 18 bold', bg='skyblue', fg='blue').place(x=100, y=15)
+        name = Label(bottom, text='Name', font='arial 12 bold', fg='blue').place(x=40, y=30)
+        email = Label(bottom, text='Email', font='arial 12 bold', fg='blue').place(x=40, y=70)
+        mob = Label(bottom, text='Phone no.', font='arial 12 bold', fg='blue').place(x=40, y=110)
+        address = Label(bottom, text='Address', font='arial 12 bold', fg='blue').place(x=40, y=150)
+
+        d_name = Label(bottom, text=n, font='arial 12 bold', fg='blue').place(x=180, y=30)
+        d_email = Label(bottom, text=e, font='arial 12 bold', fg='blue').place(x=180, y=70)
+        d_mob = Label(bottom, text=m, font='arial 12 bold', fg='blue').place(x=180, y=110)
+        d_address = Label(bottom, text=a, font='arial 12 bold', fg='blue').place(x=180, y=150)
+
+    def update_selectid(self):
+        selected_item = self.listbox.curselection()
+        person = self.listbox.get(selected_item)
+        self.person = person.split(".")[0]
+        print(self.person)
+        self.update()
+
+    def update(self):
+        r2 = Tk()
+        r2.title('Update people')
+        r2.geometry('390x500+550+220')
+        r2.resizable(False, False)
+
+        query = "select * from addpeople where ID='{}'".format(self.person)
+        result = cur.execute(query).fetchone()
+        n = result[1]
+        e = result[2]
+        m = result[3]
+        a = result[4]
+        top = Frame(r2, height=60, bg='skyblue')
+        top.pack(fill=X)
+        self.btm = Frame(r2, height=400, bg='white')
+        self.btm.pack(fill=X)
+
+        Label(top, text = 'Update People', font = 'arial 18 bold', bg = 'skyblue', fg = 'blue').place(x=100, y=15)
+        name = Label(self.btm, text='Name', font='arial 12 bold', fg='blue').place(x=40, y=30)
+        email = Label(self.btm, text='Email', font='arial 12 bold', fg='blue').place(x=40, y=70)
+        mob = Label(self.btm, text='Phone no.', font='arial 12 bold', fg='blue').place(x=40, y=110)
+        address = Label(self.btm, text='Address', font='arial 12 bold', fg='blue').place(x=40, y=150)
+
+        self.e_n=Entry(self.btm,width=35,bd=3)
+        self.e_n.insert(1,n)
+        self.e_n.place(x=160,y=30)
+
+        self.e_e = Entry(self.btm, width=35, bd=3)
+        self.e_e.insert(1, e)
+        self.e_e.place(x=160, y=70)
+
+        self.e_m = Entry(self.btm, width=35, bd=3)
+        self.e_m.insert(1, m)
+        self.e_m.place(x=160, y=110)
+
+        self.e_a = Entry(self.btm, width=35, bd=3)
+        self.e_a.insert(1, a)
+        self.e_a.place(x=160, y=150)
+
+        btn=Button(self.btm, width=9, text='Update', bd=5, bg='red',command=self.update_record)
+        btn.place(x=180, y=260)
+
+
+    def update_record(self):
+        id=self.person
+        name=self.e_n.get()
+        email = self.e_e.get()
+        mob = self.e_m.get()
+        address = self.e_a.get()
+
+        query="update addpeople set NAME='{}', EMAIL='{}', MOBILE='{}', ADDRESS='{}' where id={}".format(name,email,mob,address,id)
+        cur.execute(query)
+        conn.commit()
+        msg=Label(self.btm,text='Update Successfully',font='arial 12 bold',bg='white',fg='green')
+        msg.place(x=40,y=5)
+
+    def delete_record(self):
+        selected_item = self.listbox.curselection()
+        person = self.listbox.get(selected_item)
+        person = person.split(".")[0]
+
+        query="delete from addpeople where id={}".format(person)
+        cur.execute(query)
+        conn.commit()
+
+
+def main():
+    win=Tk()
+    app=phonebook(win)
+    win.title('Myphonebookapp')
+    win.geometry('650x570+350+60')
+    win.resizable(False,False)
+    win.mainloop()
+
+main()
